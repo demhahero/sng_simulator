@@ -115,16 +115,28 @@ void AMF::handleMessage(cMessage *msg) {
             msg->getName()) == 0) {
         cMessage *msg = new cMessage("Auth-Req"); //Authentication procedure for EAP-AKA' - step 4
         send(msg, "out_ue");
-    } else if (strcmp("Auth-Resp",
-            msg->getName()) == 0) {
-        cMessage *msg = new cMessage("Nausf_UEAuthentication_Authenticate_Request_Challenge"); //Authentication procedure for EAP-AKA' - step 7
+    } else if (strcmp("Auth-Resp", msg->getName()) == 0) {
+        cMessage *msg = new cMessage(
+                "Nausf_UEAuthentication_Authenticate_Request_Challenge"); //Authentication procedure for EAP-AKA' - step 7
         send(msg, "out_ausf");
     } else if (strcmp("Nausf_UEAuthentication_Authenticate_Response",
             msg->getName()) == 0) {
         cMessage *msg = new cMessage("EAP-SUCCESS"); //Authentication procedure for EAP-AKA' - step 11
         send(msg, "out_ue");
-    }
 
+        cMessage *msg2 = new cMessage("Nudm_UECM_Registration"); //Registration procedure - step 14a
+        send(msg2, "out_udm");
+    } else if (strcmp("Nudm_UECM_Registration_Response",
+            msg->getName()) == 0) {
+
+        cMessage *msg = new cMessage("Nudm_SDM_Get"); //Registration procedure - step 14b
+        send(msg, "out_udm");
+    } else if (strcmp("Nudm_SDM_Get_Response",
+            msg->getName()) == 0) {
+
+        cMessage *msg = new cMessage("Nudm_SDM_Subscribe"); //Registration procedure - step 14c
+        send(msg, "out_udm");
+    }
 
 }
 
@@ -150,8 +162,8 @@ void AUSF::handleMessage(cMessage *msg) {
         cMessage *msg = new cMessage(
                 "Nausf_UEAuthentication_Authenticate_Response_Challenge"); //Authentication procedure for EAP-AKA' - step 3
         send(msg, "out_amf");
-    } else if (strcmp("Nausf_UEAuthentication_Authenticate_Request_Challenge", msg->getName())
-            == 0) {
+    } else if (strcmp("Nausf_UEAuthentication_Authenticate_Request_Challenge",
+            msg->getName()) == 0) {
         cMessage *msg = new cMessage(
                 "Nausf_UEAuthentication_Authenticate_Response"); //Authentication procedure for EAP-AKA' - step 10
         send(msg, "out_amf");
@@ -175,5 +187,17 @@ void UDM::handleMessage(cMessage *msg) {
     if (strcmp("Nudm_UEAuthentication_Get_Request", msg->getName()) == 0) {
         cMessage *msg = new cMessage("Nudm_UEAuthentication_Get_Response"); //Authentication procedure for EAP-AKA' - step 2
         send(msg, "out_ausf");
+    } else if (strcmp("Nudm_UECM_Registration", msg->getName())
+            == 0) {
+        cMessage *msg = new cMessage("Nudm_UECM_Registration_Response"); //Registration procedure - step 14a Response
+        send(msg, "out_amf");
+    } else if (strcmp("Nudm_SDM_Get", msg->getName())
+            == 0) {
+        cMessage *msg = new cMessage("Nudm_SDM_Get_Response"); //Registration procedure - step 14b Response
+        send(msg, "out_amf");
+    } else if (strcmp("Nudm_SDM_Subscribe", msg->getName())
+            == 0) {
+        cMessage *msg = new cMessage("Nudm_SDM_Subscribe_Response"); //Registration procedure - step 14c Response
+        send(msg, "out_amf");
     }
 }
