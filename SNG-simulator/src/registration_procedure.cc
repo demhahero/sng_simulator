@@ -2,78 +2,18 @@
 // This file is part of an OMNeT++/OMNEST simulation example.
 //
 // Copyright (C) 2003 Ahmet Sekercioglu
-// Copyright (C) 2003-2015 Andras Varga
-//
-// This file is distributed WITHOUT ANY WARRANTY. See the file
-// `license' for details on this and other legal matters.
-//
+#include "registration_procedure.h"
 
-#include <string.h>
-#include <omnetpp.h>
-
-using namespace omnetpp;
-
-class UE: public cSimpleModule {
-protected:
-    // The following redefined virtual function holds the algorithm.
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-};
-
-class RAN: public cSimpleModule {
-protected:
-    // The following redefined virtual function holds the algorithm.
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-};
-
-class AMF: public cSimpleModule {
-protected:
-    // The following redefined virtual function holds the algorithm.
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-};
-
-class AUSF: public cSimpleModule {
-protected:
-    // The following redefined virtual function holds the algorithm.
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-};
-
-class SMF: public cSimpleModule {
-protected:
-    // The following redefined virtual function holds the algorithm.
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-};
-
-class PCF: public cSimpleModule {
-protected:
-    // The following redefined virtual function holds the algorithm.
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-};
-
-class UDM: public cSimpleModule {
-protected:
-    // The following redefined virtual function holds the algorithm.
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-};
-
-// The module class needs to be registered with OMNeT++
-Define_Module(UE);
-Define_Module(RAN);
-Define_Module(AMF);
-Define_Module(AUSF);
-Define_Module(PCF);
-Define_Module(SMF);
-Define_Module(UDM);
 
 void UE::initialize() {
 
-    cMessage *msg = new cMessage("registration_request"); //Registration procedure - step 1
+    msg_registration_request *msg = new msg_registration_request("registration_request");  //Registration procedure - step 1
+    msg->setExtended_protocol_discriminator(0x00);
+    msg->setMessage_type(0x42);
+    msg->setFGS_registration_type(0x01);
+    msg->setNgKSI(0x00);
+    msg->setFGS_mobile_identity(0x42);
+
     send(msg, "out_ran");
 }
 
@@ -92,9 +32,9 @@ void RAN::initialize() {
 }
 
 void RAN::handleMessage(cMessage *msg) {
-    if (strcmp("registration_request", msg->getName()) == 0) {
-        cMessage *msg = new cMessage("registration_request"); //Registration procedure - step 3
-        send(msg, "out_amf");
+    msg_registration_request *msg2 = (msg_registration_request *) msg;
+    if (msg2->getMessage_type() == 0x42) {
+        send(msg2, "out_amf"); //Registration procedure - step 3
     }
 }
 
@@ -103,7 +43,12 @@ void AMF::initialize() {
 }
 
 void AMF::handleMessage(cMessage *msg) {
-    if (strcmp("registration_request", msg->getName()) == 0) {
+    try{
+        msg_registration_request *msg2 = (msg_registration_request *) msg;
+    } catch(Exception e){
+
+    }
+    if (msg2->getMessage_type() == 0x42) {
         cMessage *msg = new cMessage("identity_request"); //Registration procedure - step 6
         send(msg, "out_ue");
     } else if (strcmp("identity_response", msg->getName()) == 0) {
